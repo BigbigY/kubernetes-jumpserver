@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jms-koko
+  name: jms-koko
+  namespace: ops
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jms-koko
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: jms-koko
+    spec:
+      containers:
+      - env:
+        - name: CORE_HOST
+          value: http://core.ops:8080
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jumpserver-secret
+              key: secret-key
+        - name: BOOTSTRAP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: jumpserver-secret
+              key: bootstrap-token
+        - name: REDIS_HOST
+          value: jumpserver.cache.amazonaws.com
+        - name: REDIS_PORT
+          value: "6379"
+        image: jumpserver/jms_koko:1.5.8
+        imagePullPolicy: IfNotPresent
+        name: jump-koko
+        ports:
+        - containerPort: 2222
+          protocol: TCP
+        - containerPort: 5000
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}

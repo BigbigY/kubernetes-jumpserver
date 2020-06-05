@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jumpserver
+  namespace: ops
+spec:
+  backend:
+    serviceName: jumpserver
+    servicePort: 80
+  rules:
+  - host: jumper.bigbigy.com
+    http:
+      paths:
+      - backend:
+          serviceName: core
+          servicePort: 80

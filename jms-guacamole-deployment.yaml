@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jms-guacamole
+  name: jms-guacamole
+  namespace: ops
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jms-guacamole
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: jms-guacamole
+    spec:
+      containers:
+      - env:
+        - name: CORE_HOST
+          value: http://core.ops:8080
+        - name: BOOTSTRAP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: jumpserver-secret
+              key: bootstrap-token
+        - name: GUACAMOLE_LOG_LEVEL
+          value: ERROR
+        image: jumpserver/jms_guacamole:1.5.8
+        imagePullPolicy: IfNotPresent
+        name: jms-guacamole
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst   
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}

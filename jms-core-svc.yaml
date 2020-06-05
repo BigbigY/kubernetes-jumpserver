@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jms-core
+  name: core
+  namespace: ops
+spec:
+  ports:
+  - name: jms-core
+    port: 8080
+    protocol: TCP
+  - name: jms-core-ws
+    port: 8070
+    protocol: TCP
+  - name: jms-nginx-luna
+    port: 80
+    protocol: TCP
+  selector:
+    app: jms-core
+  sessionAffinity: ClientIP

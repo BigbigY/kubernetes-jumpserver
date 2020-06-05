@@ -1,0 +1,95 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jms-core
+  name: jms-core
+  namespace: ops
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jms-core
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: jms-core
+    spec:
+      containers:
+      - name: jms-core
+        image: jumpserver/jms_core:1.5.8
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8070
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 2
+            memory: 4Gi
+          requests:
+            cpu: 2
+            memory: 4Gi
+        volumeMounts:
+        - name: persistent-storage
+          mountPath: /opt/jumpserver/data
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jumpserver-secret
+              key: secret-key
+        - name: BOOTSTRAP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: jumpserver-secret
+              key: bootstrap-token
+        - name: DB_HOST
+          value: jumpserver.rds.amazonaws.com
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: jumpserver_usro
+        - name: DEBUG
+          value: "true"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jumpserver-secret
+              key: db-password
+        - name: DB_NAME
+          value: jumpserver
+        - name: REDIS_HOST
+          value: jumpserver.cache.amazonaws.com
+        - name: REDIS_PORT
+          value: "6379" 
+      - name: jms-nginx-luna
+        image: jumpserver/jms_nginx:1.5.8
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: persistent-storage
+          mountPath: /opt/jumpserver/data
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        
+      dnsPolicy: ClusterFirst       
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      volumes:
+      # - name: shared-data
+      #   emptyDir: {}
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: jms-efs-claim      
