@@ -1,6 +1,9 @@
 # kubernetes-jumpserver
 The kubernetes cluster deploys jumpserver
 
+USE:
+- [JumpServer Docs](https://jumpserver.readthedocs.io/zh/master/)
+- [aws-efs-csi-driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)
 
 # Installation
 ```
